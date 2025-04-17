@@ -1,0 +1,45 @@
+{
+  "name": "spacetrafficcontrol",
+  "version": "0.0.1",
+  "description": "A game about traffic control and management of a small space station",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite --config vite/config.dev.mjs",
+    "build": "vite build --config vite/config.prod.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/difight/spaceTrafficControl.git"
+  },
+  "keywords": [
+    "game",
+    "js",
+    "javascript",
+    "indie",
+    "space",
+    "traffic",
+    "control"
+  ],
+  "author": "Andrey Bashkirev <greed_nord@mail.ru>",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/difight/spaceTrafficControl/issues"
+  },
+  "homepage": "https://github.com/difight/spaceTrafficControl#readme",
+  "dependencies": {
+    "phaser": "^3.88.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.34.2",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.7",
+    "terser": "^5.28.1",
+    "vite": "^5.3.1"
+  }
+}
