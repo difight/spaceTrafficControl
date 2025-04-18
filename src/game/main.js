@@ -9,16 +9,32 @@ import { Preloader } from './scenes/Preloader';
 // https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
 const config = {
     type: Phaser.AUTO,
-    width: 1024,
-    height: 768,
+    width: window.innerWidth,
+    height: window.innerHeight,
+    scale: {
+      mode: Phaser.Scale.RESIZE,
+      autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+    physics: {
+      default: "arcade",
+      arcade: {
+        gravity: {
+          x:0,
+          y:0
+        },
+        debug: true
+      }
+    },
+    render: {
+      pixelArt: true,
+      antialias: false
+    },
     parent: 'game-container',
     backgroundColor: '#028af8',
     scene: [
-        Boot,
-        Preloader,
-        MainMenu,
-        Game,
-        GameOver
+      Boot,
+      Preloader,
+      Game
     ]
 };
 

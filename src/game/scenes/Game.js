@@ -1,30 +1,43 @@
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
+import { CameraController } from '../object/CameraController';
 
 export class Game extends Scene
 {
     constructor ()
     {
-        super('Game');
+      super('Game')
+      this.mapWidth = 2000
+      this.mapHeight = 2000
+      this.minZoom = 0.2
+      this.maxZoom = 2
+      this.cameraController = null;
     }
 
     create ()
     {
-        this.cameras.main.setBackgroundColor(0x00ff00);
+      //this.cameras.main.setBackgroundColor('green')
 
-        this.add.image(512, 384, 'background').setAlpha(0.5);
+      this.mapBackground = this.add.image(0, 0, 'background').setOrigin(0)
+      this.mapBackground.displayWidth = this.mapWidth
+      this.mapBackground.displayHeight = this.mapHeight
 
-        this.add.text(512, 384, 'Make something fun!\nand share it with us:\nsupport@phaser.io', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setOrigin(0.5).setDepth(100);
+      this.camera = this.cameras.main
+      this.camera.setBounds(0, 0, this.mapWidth, this.mapHeight)
+      this.camera.setZoom(1)
 
-        EventBus.emit('current-scene-ready', this);
+      this.cameraController = new CameraController(
+        this,
+        this.mapWidth,
+        this.mapHeight,
+        this.minZoom,
+        this.maxZoom
+      )
+      
+      EventBus.emit('current-scene-ready', this);
     }
 
-    changeScene ()
-    {
-        this.scene.start('GameOver');
+    update() {
+      this.cameraController.updateCamera(); // Вызов обновления камеры
     }
 }
