@@ -1,5 +1,6 @@
 import { EventBus } from '../EventBus';
 import { Scene, Math } from 'phaser';
+import { useDebug } from '../ui/DebugProvider';
 
 export class CameraController {
   constructor (scene, mapWidth, mapHeight, minZoom = 0.5, maxZoom = 2)
@@ -31,8 +32,9 @@ export class CameraController {
     const camera = this.camera
 
     scene.input.on("wheel", (pointer, gameObjects, deltaX, deltaY) => {
-      const targetZoom = camera.zoom + deltaY * 0.005;
-      console.log(camera.zoom, targetZoom)
+      const targetZoom = camera.zoom + -deltaY * 0.005;
+      const { addDebugInfo } = useDebug();
+      addDebugInfo({ message: 'test', camera: camera.zoom,  target: targetZoom}, 'Click Event');
       const newZoom = Math.Clamp(targetZoom, this.minZoom, this.maxZoom)
       scene.tweens.add({
         targets: this.camera,
@@ -120,8 +122,8 @@ export class CameraController {
     this.updateMovement();
 
     const { movementSpeed, movement, camera } = this;
-    const dx = -movement.x * movementSpeed;
-    const dy = -movement.y * movementSpeed;
+    const dx = movement.x * movementSpeed;
+    const dy = movement.y * movementSpeed;
 
     const newScrollX = camera.scrollX + dx;
     const newScrollY = camera.scrollY + dy;
@@ -141,10 +143,5 @@ export class CameraController {
       0,
       maxHeightScroll
     );
-
-    console.log("ScrollX:", camera.scrollX);
-    console.log("MaxWidthScroll:", maxWidthScroll);
-    console.log("ScrollY:", camera.scrollY);
-    console.log("MaxHeightScroll:", maxHeightScroll);
   }
 }
