@@ -1,6 +1,6 @@
 import { EventBus } from '../EventBus';
 import { Scene, Math } from 'phaser';
-import { useDebug } from '../ui/DebugProvider';
+
 
 export class CameraController {
   constructor (scene, mapWidth, mapHeight, minZoom = 0.5, maxZoom = 2)
@@ -33,8 +33,7 @@ export class CameraController {
 
     scene.input.on("wheel", (pointer, gameObjects, deltaX, deltaY) => {
       const targetZoom = camera.zoom + -deltaY * 0.005;
-      const { addDebugInfo } = useDebug();
-      addDebugInfo({ message: 'test', camera: camera.zoom,  target: targetZoom}, 'Click Event');
+      window.globalDebug.log(`wheel targetZoom: ${targetZoom}`)
       const newZoom = Math.Clamp(targetZoom, this.minZoom, this.maxZoom)
       scene.tweens.add({
         targets: this.camera,
@@ -50,7 +49,7 @@ export class CameraController {
     const edgeSpeed = 2
     const scene = this.scene
     const camera = this.camera
-    scene.input.on("pointmove", (pointer) => {
+    scene.input.on("pointermove", (pointer) => {
       const { witdh, height } = scene.scale
       const x = pointer.x
       const y = pointer.y
@@ -72,17 +71,26 @@ export class CameraController {
       const newScrollX = camera.scrollX + dx
       const newScrollY = camera.scrollY + dy
 
-      camera.scrollX = Math.Clamp(
-        newScrollX,
-        0,
-        this.mapWidth - camera.witdh * camera.zoom
-      )
+      
+      window.globalDebug.log(`
+        pointer move: x ${pointer.x} y ${pointer.y}
+        newScrollX: ${newScrollX}
+        newScrollY: ${newScrollY}
+        maxWidth: ${this.mapWidth - camera.width * camera.zoom}
+        maxHeight: ${this.mapHeight - camera.height * camera.zoom}
+      `)
 
-      camera.scrollY = Math.Clamp(
-        newScrollY,
-        0,
-        this.mapHeight - camera.height * camera.zoom
-      )
+      //camera.scrollX = Math.Clamp(
+      //  newScrollX,
+      //  0,
+      //  this.mapWidth - camera.width * camera.zoom
+      //)
+
+      //camera.scrollY = Math.Clamp(
+      //  newScrollY,
+      //  0,
+      //  this.mapHeight - camera.height * camera.zoom
+      //)
     })
   }
   setupKeyboardControl() {
@@ -129,19 +137,20 @@ export class CameraController {
     const newScrollY = camera.scrollY + dy;
 
     // Пересчитываем максимальные значения скрола на каждом кадре
-    const maxWidthScroll = this.mapWidth - (camera.width * camera.zoom);
-    const maxHeightScroll = this.mapHeight - (camera.height * camera.zoom);
+    const maxWidthScroll = this.mapWidth - (camera.width * camera.zoom) ;
+    const maxHeightScroll = this.mapHeight + (camera.height * camera.zoom);
+    
 
     // Ограничение перемещения
     camera.scrollX = Phaser.Math.Clamp(
       newScrollX,
-      0,
-      maxWidthScroll
+      (maxWidthScroll < 0) ? maxWidthScroll : 0,
+      (maxWidthScroll < 0) ? maxWidthScroll * -1: maxWidthScroll
     );
     camera.scrollY = Phaser.Math.Clamp(
       newScrollY,
-      0,
-      maxHeightScroll
+      (maxHeightScroll < 0) ? maxHeightScroll : 0,
+      (maxHeightScroll < 0) ? maxHeightScroll * -1: maxHeightScroll
     );
   }
 }

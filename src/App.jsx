@@ -1,10 +1,8 @@
 import { useRef, useState } from 'react';
-
-import Phaser from 'phaser';
 import { PhaserGame } from './game/PhaserGame';
-
 import { DebugProvider } from './game/ui/DebugProvider';
-import Debug from './game/ui/Debug';
+import DebugPanel from './game/ui/DebugPanel';
+import { useGlobalDebug } from './game/hooks/useDebug';
 
 function App ()
 {
@@ -12,13 +10,21 @@ function App ()
 
 
     return (
+      
+      <DebugProvider>
+        <DebugInitializer/>
         <div id="app">
-            <DebugProvider>
-              <PhaserGame ref={phaserRef}/>
-              <Debug/>
-            </DebugProvider>
-        </div>
+          <PhaserGame ref={phaserRef}/>
+          <DebugPanel/>
+        </div>        
+      </DebugProvider>
     )
 }
+
+const DebugInitializer = () => {
+  const debug = useGlobalDebug();
+  window.globalDebug = debug;
+  return null;
+};
 
 export default App

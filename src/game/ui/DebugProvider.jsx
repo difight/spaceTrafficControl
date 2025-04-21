@@ -1,32 +1,29 @@
-import React, { createContext, useState, useContext } from 'react';
+import { createContext, useContext, useState } from "react";
 
-// Создаем контекст для дебаг-информации
 const DebugContext = createContext();
 
-// Провайдер для дебаг-информации
 export const DebugProvider = ({ children }) => {
-  const [debugInfo, setDebugInfo] = useState([]);
+  const [messages, setMessages] = useState([]);
 
-  // Функция для добавления новой записи
-  const addDebugInfo = (data, label = 'Debug Info') => {
-    setDebugInfo((prev) => [
-      ...prev,
-      { id: Date.now(), label, data, timestamp: new Date().toISOString() },
-    ]);
+  const addMessage = (message) => {
+    setMessages((prev) => [message, ...prev]);
+  };
+
+  const clearMessages = () => {
+    setMessages([]);
   };
 
   return (
-    <DebugContext.Provider value={{ debugInfo, addDebugInfo }}>
+    <DebugContext.Provider value={{ messages, addMessage, clearMessages }}>
       {children}
     </DebugContext.Provider>
   );
 };
 
-// Хук для использования контекста
 export const useDebug = () => {
   const context = useContext(DebugContext);
   if (!context) {
-    throw new Error('useDebug must be used within a DebugProvider');
+    throw new Error("useDebug must be used within a DebugProvider");
   }
   return context;
 };
