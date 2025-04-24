@@ -3,7 +3,7 @@ import { Scene, Math } from 'phaser';
 
 
 export class CameraController {
-  constructor (scene, mapWidth, mapHeight, minZoom = 0.5, maxZoom = 2)
+  constructor (scene, mapWidth, mapHeight, minZoom = 0.5, maxZoom = 1)
   {
     this.scene = scene
     this.camera = scene.cameras.main
@@ -72,13 +72,13 @@ export class CameraController {
       const newScrollY = camera.scrollY + dy
 
       
-      window.globalDebug.log(`
-        pointer move: x ${pointer.x} y ${pointer.y}
-        newScrollX: ${newScrollX}
-        newScrollY: ${newScrollY}
-        maxWidth: ${this.mapWidth - camera.width * camera.zoom}
-        maxHeight: ${this.mapHeight - camera.height * camera.zoom}
-      `)
+      //window.globalDebug.log(`
+      //  pointer move: x ${pointer.x} y ${pointer.y}
+      //  newScrollX: ${newScrollX}
+      //  newScrollY: ${newScrollY}
+      //  maxWidth: ${this.mapWidth - camera.width * camera.zoom}
+      //  maxHeight: ${this.mapHeight - camera.height * camera.zoom}
+      //`)
 
       //camera.scrollX = Math.Clamp(
       //  newScrollX,

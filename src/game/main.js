@@ -23,6 +23,10 @@ const config = {
           y:0
         },
         debug: true
+      },
+      world: {
+        setBoundsCollision: true,
+        debug: true
       }
     },
     render: {

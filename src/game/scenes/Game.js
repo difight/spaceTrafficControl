@@ -1,6 +1,7 @@
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import { CameraController } from '../object/CameraController';
+import { LandingArea } from '../object/LandingArea';
 
 export class Game extends Scene
 {
@@ -9,8 +10,8 @@ export class Game extends Scene
       super('Game')
       this.mapWidth = 2000
       this.mapHeight = 2000
-      this.minZoom = 0.2
-      this.maxZoom = 2
+      this.minZoom = 1
+      this.maxZoom = 3
       this.cameraController = null;
     }
 
@@ -33,6 +34,9 @@ export class Game extends Scene
         this.minZoom,
         this.maxZoom
       )
+
+      this.physics.world.setBoundsCollision(true);
+      this.area = new LandingArea(this, 500, 500, 195, 201)
       
       EventBus.emit('current-scene-ready', this);
     }
