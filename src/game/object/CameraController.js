@@ -45,6 +45,7 @@ export class CameraController {
   }
 
   setupEdgeMovement() {
+    // @todo AndreyBashkirev это пока нормально не работает, надо разбираться
     const edgeThreshold = 0.1
     const edgeSpeed = 2
     const scene = this.scene
