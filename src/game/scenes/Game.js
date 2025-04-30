@@ -2,6 +2,7 @@ import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import { CameraController } from '../object/CameraController';
 import { LandingArea } from '../object/LandingArea';
+import Ship from '../object/Ship';
 
 export class Game extends Scene
 {
@@ -12,12 +13,14 @@ export class Game extends Scene
       this.mapHeight = 2000
       this.minZoom = 1
       this.maxZoom = 3
-      this.cameraController = null;
+      this.cameraController = null
+      this.emptyAreas = []
+      this.busyAreas = []
+      this.ships = []
     }
 
     create ()
     {
-      //this.cameras.main.setBackgroundColor('green')
 
       this.mapBackground = this.add.image(0, 0, 'background').setOrigin(0)
       this.mapBackground.displayWidth = this.mapWidth
@@ -36,12 +39,20 @@ export class Game extends Scene
       )
 
       this.physics.world.setBoundsCollision(true);
-      this.area = new LandingArea(this, 500, 500, 195, 201)
+      this.areas =  [
+        new LandingArea(this, 500, 500,'area1'),
+        new LandingArea(this, 500, 800,'area2')
+      ]
+      this.ship = new Ship(this, 100, 100, 'ship1')
       
       EventBus.emit('current-scene-ready', this);
+      
     }
 
     update() {
-      this.cameraController.updateCamera(); // Вызов обновления камеры
+      this.cameraController.updateCamera() // Вызов обновления камеры
+      if (this.ship) {
+        this.ship.update()
+      }
     }
 }

@@ -4,7 +4,7 @@ export class Boot extends Scene
 {
     constructor ()
     {
-        super('Boot');
+      super('Boot');
     }
 
     preload ()
@@ -14,10 +14,11 @@ export class Boot extends Scene
       this.load.image('background', 'assets/bg.png');
       this.load.image('landingAreaEmpty', 'assets/landingAreaEmpty.png');
       this.load.image('landingAreaBisy', 'assets/landingAreaBisy.png');
+      this.load.image('ship', 'assets/ship.png');
     }
 
     create ()
     {
-        this.scene.start('Preloader');
+      this.scene.start('Preloader');
     }
 }

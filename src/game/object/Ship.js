@@ -1,85 +1,88 @@
 import Phaser from "phaser";
+import { EventBus } from "../EventBus";
 
 class Ship extends Phaser.GameObjects.Sprite {
-  constructor(scene, parkingZone, spawnX, spawnY) {
+  constructor(scene, spawnX, spawnY, id) {
     super(scene, spawnX, spawnY, "ship");
     this.scene = scene;
-    this.parkingZone = parkingZone;
-    this.setOrigin(0.5);
-    this.setCollideWorldBounds(true);
-    this.speed = 100;
-    this.docking = false;
-    this.waiting = false;
-
-    // Добавляем в физику
+    this.id = id;
+    this.width = 152;
+    this.height = 160;
+    this.speed = 400;
+    this.turn_speed = 1;
+    this.friction = 0.98;
+    this.isLanding = false;
+    this.targetLandingArea = null;
+    this.initListiner()
+    // Физика
     scene.physics.add.existing(this);
+    this.body.setCollideWorldBounds(true);
+    this.body.setAllowRotation(true);
+  
+    this.setOrigin(0.5);
+    this.initListiner();
+    this.requestDock();
+    scene.add.existing(this);
+  }
 
-    // Двигатели
-    this.engineFlame = scene.add.particles("engine_flame");
-    this.engineEmitter = this.engineFlame.createEmitter({
-      speed: 0,
-      scale: { start: 0.5, end: 0 },
-      lifespan: 500
+  initListiner() {
+    EventBus.on("docking-permitted", (request) => {
+      console.log(`Разрешение для ${this.id} от ${request.zone.id}`);
+      this.permittedDocking(request);
     });
   }
 
-  // Обновление позиции
+  handleClick() {
+    window.globalDebug.log(`Корабль клик`)
+    EventBus.emit("ship-info", { id: this.id, x: this.x, y: this.y })
+  }
+
+  requestDock() {
+    console.log(`Запрос от ${this.id}`)
+    EventBus.emit("dock-request", { ship: this, position: { x: this.x, y: this.y } })
+  }
+
+  permittedDocking({ zone, ship }) {
+    if (this.id === ship.id) {
+      this.targetLandingArea = zone.getLandingPosition()
+      this.isLanding = true
+      zone.changeBusy()
+
+    }
+  }
+
+  // Обновление позиции и поворота
   update() {
-    // Плавный поворот к цели
-    const target = this.docking
-      ? this.parkingZone.getLandingPosition()
-      : { x: 1500, y: 1000 };
-  
-    const dx = target.x - this.x;
-    const dy = target.y - this.y;
+    if (!this.targetLandingArea) return;
+
+    const dx = this.targetLandingArea.x - this.x;
+    const dy = this.targetLandingArea.y - this.y;
+    const distance = Phaser.Math.Distance.Between(this.x, this.y, this.targetLandingArea.x, this.targetLandingArea.y);
+
+    // Целевой угол (радианы)
     const targetAngle = Math.atan2(dy, dx);
-  
-    // Плавный поворот
-    const deltaAngle = targetAngle - Phaser.Math.DegToRad(this.angle);
-    this.angle += Phaser.Math.RadToDeg(deltaAngle * 0.1);
-  
-    // Движение
-    this.setVelocity(
-      Math.cos(targetAngle) * this.speed,
-      Math.sin(targetAngle) * this.speed
-    );
-  }
+    const currentAngle = this.body.rotation;
 
-  // Движение к зоне ожидания
-  startApproach() {
-    this.moveTo(1500, 1000); // Координаты зоны ожидания
-    this.activateEngines();
-  }
+    // Поворот
+    const deltaAngle = Phaser.Math.Angle.Wrap(targetAngle - currentAngle);
+    if (Math.abs(deltaAngle) > 0.1) {
+      const turnDirection = Math.sign(deltaAngle);
+      this.body.angularVelocity = turnDirection * 100; // Скорость поворота
+    } else {
+      this.body.angularVelocity = 0;
+      this.body.setVelocity(
+        Math.cos(currentAngle) * this.speed,
+        Math.sin(currentAngle) * this.speed
+      );
+    }
 
-  // Движение к месту стыковки
-  moveToLandingPosition() {
-    const target = this.parkingZone.getLandingPosition();
-    this.moveTo(target.x, target.y);
-  }
-
-  // Основной метод движения
-  moveTo(targetX, targetY) {
-    const dx = targetX - this.x;
-    const dy = targetY - this.y;
-    const angle = Math.atan2(dy, dx);
-    
-    this.setAngle(angle * (180 / Math.PI));
-    this.setVelocity(
-      Math.cos(angle) * this.speed,
-      Math.sin(angle) * this.speed
-    );
-  }
-
-  // Включение двигателей
-  activateEngines() {
-    this.engineEmitter.setActive(true);
-    this.engineEmitter.startFollow(this);
-  }
-
-  // Выключение двигателей
-  deactivateEngines() {
-    this.engineEmitter.setActive(false);
-    this.engineEmitter.clear();
+    // Остановка при достижении
+    if (distance < 50) {
+      this.body.setVelocity(0);
+      this.isLanding = false;
+      this.targetLandingArea = null;
+      EventBus.emit("ship-docked", this);
+    }
   }
 }
 

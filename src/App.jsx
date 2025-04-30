@@ -3,6 +3,7 @@ import { PhaserGame } from './game/PhaserGame';
 import { DebugProvider } from './game/ui/DebugProvider';
 import DebugPanel from './game/ui/DebugPanel';
 import { useGlobalDebug } from './game/hooks/useDebug';
+import ShipInfo from './components/ShipInfo';
 
 function App ()
 {
@@ -14,9 +15,10 @@ function App ()
       <DebugProvider>
         <DebugInitializer/>
         <div id="app">
+          <ShipInfo/>
           <PhaserGame ref={phaserRef}/>
           <DebugPanel/>
-        </div>        
+        </div>    
       </DebugProvider>
     )
 }

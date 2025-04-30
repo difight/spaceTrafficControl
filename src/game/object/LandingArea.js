@@ -1,48 +1,69 @@
 import Phaser from "phaser";
+import { EventBus } from "../EventBus";
 
 export class LandingArea extends Phaser.GameObjects.Container {
-  constructor(scene, x, y, width, height) {
-    super(scene, x, y)
+  constructor(scene, x, y, id) {
+    super(scene, x, y);
+    this.scene = scene;
+    this.width = 195;
+    this.height = 201;
+    this.id = id;
+    this.busy = false;
 
-    this.scene = scene
-    this.width = width
-    this.height = height
-    this.backgound = scene.add.image(-this.width / 2, -this.height / 2, 'landingAreaEmpty')
-    this.backgound.setOrigin(0, 0)
-    this.backgound.displayWidth = width
-    this.backgound.displayHeight = height
-    this.busy = false
+    // Создаем фон зоны
+    this.background = scene.add.image(
+      -this.width / 2,
+      -this.height / 2,
+      "landingAreaEmpty"
+    ).setOrigin(0, 0)
+    this.background.displayWidth = this.width;
+    this.background.displayHeight = this.height;
+    this.add(this.background);
 
-    this.add(this.backgound)
-
-    // Отладочная рамка (красная)
-    //const debugOutline = scene.add.graphics();
-    //debugOutline.lineStyle(2, 0xff0000, 1);
-    //debugOutline.strokeRect(
-    //  -this.width / 2, // Левый верхний угол
-    //  -this.height / 2, // Левый верхний угол
-    //  this.width,
-    //  this.height
-    //);
-    //this.add(debugOutline);
-
-
-    this.setInteractive()
+    // Интерактивность
+    this.setInteractive();
     this.on("pointerdown", this.handleClick, this);
-    this.setPosition(x, y)
-    scene.add.existing(this)
+    this.setPosition(x, y); 
+    scene.add.existing(this);
+
+    // Подписка на запросы
+    EventBus.on("dock-request", (request) => {
+      this.checkAvailability(request);
+    });
+  }
+
+  checkAvailability(request) {
+    console.log(`Проверка доступности для зоны ${this.id}`);
+    const distance = Phaser.Math.Distance.Between(
+      request.position.x,
+      request.position.y,
+      this.x,
+      this.y
+    );
+
+    if (!this.busy && distance < 1000) {
+      console.log(`Разрешено стыковка для корабля ${request.ship.id}`);
+      // Отправляем событие через 100ms для симуляции асинхронности
+      setTimeout(() => {
+        EventBus.emit("docking-permitted", { zone: this, ship: request.ship });
+      }, 100);
+    }
   }
 
   handleClick() {
-    window.globalDebug.log(`Зона парковки клик`)
-    this.busy = !this.busy
-    this.changeBg()
+    window.globalDebug.log(`Клик по зоне ${this.id}`);
+    this.changeBusy();
   }
-  changeBg() {
-    if (this.busy) {
-      this.backgound.setTexture("landingAreaBisy");
-    } else {
-      this.backgound.setTexture("landingAreaEmpty");
-    }
+
+  changeBusy() {
+    this.busy = !this.busy;
+    //this.background.setTexture(this.busy ? "landingAreaBusy" : "landingAreaEmpty");
+  }
+
+  getLandingPosition() {
+    return {
+      x: this.x + this.width / 2, // Центр зоны
+      y: this.y + this.height / 2
+    };
   }
 }
