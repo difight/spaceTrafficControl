@@ -54,35 +54,43 @@ class Ship extends Phaser.GameObjects.Sprite {
   // Обновление позиции и поворота
   update() {
     if (!this.targetLandingArea) return;
-
+  
     const dx = this.targetLandingArea.x - this.x;
     const dy = this.targetLandingArea.y - this.y;
     const distance = Phaser.Math.Distance.Between(this.x, this.y, this.targetLandingArea.x, this.targetLandingArea.y);
-
-    // Целевой угол (радианы)
-    const targetAngle = Math.atan2(dy, dx);
-    const currentAngle = this.body.rotation;
-
-    // Поворот
-    const deltaAngle = Phaser.Math.Angle.Wrap(targetAngle - currentAngle);
-    if (Math.abs(deltaAngle) > 0.1) {
-      const turnDirection = Math.sign(deltaAngle);
-      this.body.angularVelocity = turnDirection * 100; // Скорость поворота
-    } else {
-      this.body.angularVelocity = 0;
-      this.body.setVelocity(
-        Math.cos(currentAngle) * this.speed,
-        Math.sin(currentAngle) * this.speed
-      );
-    }
-
+  
+    // Целевой угол
+    const targetAngle = Phaser.Math.Angle.Between(this.x, this.y, this.targetLandingArea.x, this.targetLandingArea.y);
+    this.body.rotation = targetAngle;
+  
+    // Замедление при приближении
+    const speed = distance < 100 ? this.speed * (distance / 100) : this.speed;
+  
+    // Движение к цели
+    this.body.setVelocity(
+      Math.cos(targetAngle) * speed,
+      Math.sin(targetAngle) * speed
+    );
+  
     // Остановка при достижении
-    if (distance < 50) {
+    if (distance < 20) {
       this.body.setVelocity(0);
       this.isLanding = false;
       this.targetLandingArea = null;
       EventBus.emit("ship-docked", this);
     }
+  
+    // Трение
+    this.body.velocity.x *= this.friction;
+    this.body.velocity.y *= this.friction;
+  
+    // Отладка
+    console.log(`Корабль ${this.id}: 
+      dx: ${dx}, dy: ${dy}
+      targetAngle: ${targetAngle}
+      velocity: ${this.body.velocity.x}, ${this.body.velocity.y}
+      distance: ${distance}
+    `);
   }
 }
 
