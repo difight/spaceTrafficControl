@@ -28,6 +28,7 @@ export class Game extends Scene
 
       this.camera = this.cameras.main
       this.camera.setBounds(0, 0, this.mapWidth, this.mapHeight)
+      this.physics.world.setBounds(0, 0, this.mapWidth, this.mapHeight); // Например, 5000x5000
       this.camera.setZoom(1)
 
       this.cameraController = new CameraController(
@@ -43,7 +44,7 @@ export class Game extends Scene
         new LandingArea(this, 500, 500,'area1'),
         new LandingArea(this, 500, 800,'area2')
       ]
-      this.ship = new Ship(this, 100, 100, 'ship1')
+      this.ship = new Ship(this, 200, 200, 'ship1')
       
       EventBus.emit('current-scene-ready', this);
       

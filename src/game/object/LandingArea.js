@@ -1,9 +1,9 @@
 import Phaser from "phaser";
 import { EventBus } from "../EventBus";
 
-export class LandingArea extends Phaser.GameObjects.Container {
+export class LandingArea extends Phaser.GameObjects.Sprite {
   constructor(scene, x, y, id) {
-    super(scene, x, y);
+    super(scene, x, y, 'landingAreaEmpty');
     this.scene = scene;
     this.width = 195;
     this.height = 201;
@@ -11,14 +11,7 @@ export class LandingArea extends Phaser.GameObjects.Container {
     this.busy = false;
 
     // Создаем фон зоны
-    this.background = scene.add.image(
-      -this.width / 2,
-      -this.height / 2,
-      "landingAreaEmpty"
-    ).setOrigin(0, 0)
-    this.background.displayWidth = this.width;
-    this.background.displayHeight = this.height;
-    this.add(this.background);
+    this.setOrigin(0.5, 0.5)
 
     // Интерактивность
     this.setInteractive();
@@ -57,7 +50,7 @@ export class LandingArea extends Phaser.GameObjects.Container {
 
   changeBusy() {
     this.busy = !this.busy;
-    //this.background.setTexture(this.busy ? "landingAreaBusy" : "landingAreaEmpty");
+    this.setTexture(this.busy ? "landingAreaBusy" : "landingAreaEmpty");
   }
 
   getLandingPosition() {

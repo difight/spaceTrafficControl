@@ -19,7 +19,7 @@ class Ship extends Phaser.GameObjects.Sprite {
     this.body.setCollideWorldBounds(true);
     this.body.setAllowRotation(true);
   
-    this.setOrigin(0.5);
+    this.setOrigin(0.5, 0.5);
     this.initListiner();
     this.requestDock();
     scene.add.existing(this);
@@ -54,43 +54,31 @@ class Ship extends Phaser.GameObjects.Sprite {
   // Обновление позиции и поворота
   update() {
     if (!this.targetLandingArea) return;
-  
+
     const dx = this.targetLandingArea.x - this.x;
     const dy = this.targetLandingArea.y - this.y;
     const distance = Phaser.Math.Distance.Between(this.x, this.y, this.targetLandingArea.x, this.targetLandingArea.y);
-  
-    // Целевой угол
-    const targetAngle = Phaser.Math.Angle.Between(this.x, this.y, this.targetLandingArea.x, this.targetLandingArea.y);
-    this.body.rotation = targetAngle;
-  
-    // Замедление при приближении
-    const speed = distance < 100 ? this.speed * (distance / 100) : this.speed;
-  
+
+    // Целевой угол (радианы)
+    const targetAngle = Math.atan2(dy, dx); // Угол к цели
+    const correctedAngle = Phaser.Math.Angle.Wrap(targetAngle + Math.PI / 2); 
+    this.setRotation(correctedAngle); // Прямое вращение спрайта
+
     // Движение к цели
     this.body.setVelocity(
-      Math.cos(targetAngle) * speed,
-      Math.sin(targetAngle) * speed
+      Math.cos(targetAngle) * this.speed,
+      Math.sin(targetAngle) * this.speed
     );
-  
+
     // Остановка при достижении
-    if (distance < 20) {
+    if (distance < 45) {
       this.body.setVelocity(0);
       this.isLanding = false;
       this.targetLandingArea = null;
       EventBus.emit("ship-docked", this);
     }
   
-    // Трение
-    this.body.velocity.x *= this.friction;
-    this.body.velocity.y *= this.friction;
-  
-    // Отладка
-    console.log(`Корабль ${this.id}: 
-      dx: ${dx}, dy: ${dy}
-      targetAngle: ${targetAngle}
-      velocity: ${this.body.velocity.x}, ${this.body.velocity.y}
-      distance: ${distance}
-    `);
+    
   }
 }
 
