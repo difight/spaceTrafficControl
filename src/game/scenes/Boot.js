@@ -15,6 +15,11 @@ export class Boot extends Scene
       this.load.image('landingAreaEmpty', 'assets/landingAreaEmpty.png');
       this.load.image('landingAreaBisy', 'assets/landingAreaBisy.png');
       this.load.image('ship', 'assets/ship.png');
+      this.textures.generate('engine_flame', {
+        data: ['•'], // Простой точечный паттерн
+        pixelWidth: 32,
+        palette: [0xff0000, 0xff8800, 0xffff00] // Градиент от красного к желтому
+      });
     }
 
     create ()

@@ -8,9 +8,6 @@ class Ship extends Phaser.GameObjects.Sprite {
     this.id = id;
     this.width = 152;
     this.height = 160;
-    this.speed = 400;
-    this.turn_speed = 1;
-    this.friction = 0.98;
     this.isLanding = false;
     this.targetLandingArea = null;
     this.initListiner()
@@ -21,17 +18,39 @@ class Ship extends Phaser.GameObjects.Sprite {
   
     this.setOrigin(0.5, 0.5);
 
-    this.rotationSpeed = 0.5;      // Скорость поворота (меньше = плавнее)
-    this.enginePower = 80;           // Сила ускорения
-    this.dragFactor = 0.95;          // Инерция (0.9-0.99 для "космоса")
-    this.brakingDistance = 150;      // Дистанция торможения
+    
+    this.speed = 200;
+    this.acceleration = 5;
+    this.rotationSpeed = 0.5;
+    this.dragFactor = 0.99;
 
     // Физика (без изменения существующих свойств)
     this.body.setDrag(this.dragFactor);
+    this.body.setDamping(true);
     this.body.setAngularDrag(50);
     this.initListiner();
     this.requestDock();
     scene.add.existing(this);
+     // Создаем эмиттер частиц
+    this.flameEmitter = scene.add.particles(0, 0, 'engine_flame', {
+        color: [0xff6600, 0xff0000], // Диапазон цветов
+        scale: { start: 1.0, end: 0 }, // Начинаем с большего размера
+        alpha: { start: 1, end: 0 },   // Плавное исчезновение
+        blendMode: 'ADD',              // Режим наложения
+        lifespan: 500,                 // Время жизни частицы (мс)
+        speed: { min: 50, max: 150 },  // Разброс скорости
+        angle: { min: -160, max: -200 },// Вылет назад (корректируйте под ваш спрайт)
+        frequency: 40,                 // Частота появления
+        follow: this,                  // Привязка к кораблю
+        followOffset: { x: -50, y: 0 } // Смещение от центра
+    });
+    this.flameEmitter.stop(); // Изначально выключен
+    
+    // Для отладки
+    this.flameEmitter.setDepth(1); // Поверх других объектов
+    this.flameEmitter.setBlendMode(Phaser.BlendModes.ADD);
+    this.flameEmitter.setAlpha(0.8, 0);
+    
   }
 
   initListiner() {
@@ -60,58 +79,83 @@ class Ship extends Phaser.GameObjects.Sprite {
     }
   }
 
-  // Обновление позиции и поворота
   update() {
     if (!this.targetLandingArea) return;
 
     const dx = this.targetLandingArea.x - this.x;
     const dy = this.targetLandingArea.y - this.y;
-    //const distance = Phaser.Math.Distance.Between(this.x, this.y, this.targetLandingArea.x, this.targetLandingArea.y);
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    //// Целевой угол (радианы)
-    //const targetAngle = Math.atan2(dy, dx); // Угол к цели
-    //const correctedAngle = Phaser.Math.Angle.Wrap(targetAngle + Math.PI / 2); 
-    //this.setRotation(correctedAngle); // Прямое вращение спрайта
+    // 1. Определяем фазу посадки (используем обратную логику)
+    const landingStartDistance = 150;
+    const isApproaching = distance > landingStartDistance;
+    const isLandingPhase = !isApproaching;
 
-    // Целевой угол (радианы)
-    const targetAngle = Math.atan2(dy, dx); // Угол к цели
-    const correctedAngle = Phaser.Math.Angle.Wrap(targetAngle + Math.PI / 2); 
-    this.setRotation(correctedAngle); // Прямое вращение спрайта
+    // 2. Расчет углов
+    const targetAngle = Math.atan2(dy, dx);
+    const flyingRotation = targetAngle + Math.PI / 2; // Обычный полет
+    const landingRotation = Math.PI / 0.5; // Вертикально вверх
+    let desiredRotation = isLandingPhase ? landingRotation : flyingRotation;
 
-    //// Движение к цели
-    //this.body.setVelocity(
-    //  Math.cos(targetAngle) * this.speed,
-    //  Math.sin(targetAngle) * this.speed
-    //);
+    // 3. Плавный поворот с разной скоростью
+    const rotationSpeed = isLandingPhase 
+        ? this.rotationSpeed * 0.05 // Медленнее при посадке
+        : this.rotationSpeed * 0.1;  // Быстрее в полете
 
-    //const angleToTarget = Phaser.Math.Angle.Between(
-    //  this.x, this.y, this.targetLandingArea.x, this.targetLandingArea.y
-    //);
+    this.rotation = Phaser.Math.Angle.RotateTo(
+        this.rotation,
+        desiredRotation,
+        rotationSpeed
+    );
 
-    // 1. Плавный поворот
-    //const deltaAngle = Phaser.Math.Angle.Wrap(angleToTarget - this.rotation);
-    //this.body.setAngularVelocity(correctedAngle * this.rotationSpeed * 100);
+    // 4. Управление скоростью (инвертированная логика)
+    const maxSpeed = this.speed * (isApproaching ? 1 : distance / landingStartDistance);
+    const currentSpeed = Math.sqrt(this.body.velocity.x**2 + this.body.velocity.y**2);
+    const acceleration = isApproaching ? this.acceleration : this.acceleration * 2;
 
-    //// 2. Умное ускорение с инерцией
-    const distance = Phaser.Math.Distance.Between(this.x, this.y, this.targetLandingArea.x, this.targetLandingArea.y);
-    //const isClose = distance < this.brakingDistance;
-    //const thrust = isClose 
-    //    ? this.enginePower * (distance / this.brakingDistance) // Плавное торможение
-    //    : this.enginePower;
-
-    //const velocityX = Math.cos(this.rotation) * thrust;
-    //const velocityY = Math.sin(this.rotation) * thrust;
-    //this.body.setVelocity(velocityX, velocityY);
-
-    // Остановка при достижении
-    if (distance < 45) {
-      this.body.setVelocity(0);
-      this.isLanding = false;
-      this.targetLandingArea = null;
-      EventBus.emit("ship-docked", this);
+    if (currentSpeed < maxSpeed) {
+        const velocityX = Math.cos(targetAngle) * acceleration * 0.1;
+        const velocityY = Math.sin(targetAngle) * acceleration * 0.1;
+        this.body.velocity.x += velocityX;
+        this.body.velocity.y += velocityY;
     }
-  
+
+    // 5. Гарантированное торможение при посадке
+    if (isLandingPhase) {
+        this.body.velocity.scale(0.95);
+    }
+
+    // 6. Финишная остановка
+    if (distance < 30) {
+        this.body.setVelocity(0);
+        this.rotation = landingRotation; // Фиксируем вертикальное положение
+        this.isLanding = false;
+        this.targetLandingArea = null;
+        EventBus.emit("ship-docked", this);
+    }
+
+    const isMoving = this.body.velocity.length() > 10;
+    const isVisible = this.flameEmitter.visible;
     
+    if (isMoving) {
+      if (!isVisible) {
+          this.flameEmitter.start();
+          this.flameEmitter.setVisible(true);
+      }
+      
+      // Корректировка позиции с учетом поворота
+      const offsetX = -Math.cos(this.rotation) * 50;
+      const offsetY = -Math.sin(this.rotation) * 50;
+      this.flameEmitter.followOffset.set(offsetX, offsetY);
+      
+      // Настройка интенсивности по скорости
+      const speedFactor = Phaser.Math.Clamp(this.body.velocity.length() / this.speed, 0.3, 1.5);
+      this.flameEmitter.setQuantity(2 * speedFactor);
+    } 
+    else if (isVisible) {
+      this.flameEmitter.stop();
+      this.flameEmitter.setVisible(false);
+    }
   }
 }
 
